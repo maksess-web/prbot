@@ -2,7 +2,7 @@ name: Telegram Sender
 
 on:
   schedule:
-    - cron: "0 */4 * * *"   # каждые 4 часа
+    - cron: "0 */2 * * *"   # каждые 4 часа
   workflow_dispatch:          # ручной запуск для теста
 
 jobs:
