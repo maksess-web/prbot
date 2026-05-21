@@ -1,6 +1,7 @@
 import asyncio
 import os
-import base64
+import requests
+from datetime import datetime
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 from telethon.errors import (
@@ -14,36 +15,32 @@ API_ID      = int(os.environ["TG_API_ID"])
 API_HASH    = os.environ["TG_API_HASH"]
 SESSION_STR = os.environ["TG_SESSION"]
 
+# Бот для отчётов
+REPORT_BOT_TOKEN = os.environ["REPORT_BOT_TOKEN"]
+REPORT_CHAT_ID   = os.environ["REPORT_CHAT_ID"]
+
 # ─── ОБЪЯВЛЕНИЯ ────────────────────────────────────────────────────────────────
 
-# Объявление для чатов С ОПЫТОМ
 MESSAGE_EXPERIENCED = """
-🔥🔥🔥 РАБОТА ОНЛАЙН | ОПЕРАТОР ЧАТА (Dream Singles) 🔥🔥🔥
+🔥🔥🔥 НАБОР ОПЕРАТОРОВ/ПЕРЕВОДЧИКОВ DREAM SINGLES ⚡️⚡️⚡️
 
-Ищете стабильный доход из дома без вложений? Есть вариант с понятной системой оплаты и реальным ростом.
+⌛️НАЛИЧИЕ ОПЫТА НЕОБЯЗАТЕЛЬНО
+📚 ПОЛНОЕ ОБУЧЕНИЕ 
+🤑 ОТ 42% ДО 50% ЗАРАБОТКА С АНКЕТЫ
+🎁 25% ОТ СТОИМОСТИ ПОДАРКА ИДУТ ОПЕРАТОРУ
+💻 УДАЛЕННАЯ РАБОТА С ПК/НОУТБУКА
+🏖 ГРАФИК 6/1, 8 ЧАСОВ С ВОЗМОЖНОСТЬ РАЗДЕЛИТЬ СМЕНУ НА НЕСКОЛЬКО РАЗ
+📈 КАРЪЕРНЫЙ РОСТ
+🏆 ОТСУТСТВИЕ ШТРАФОВ ВНУТРИ КОМПАНИИ
+💛 БОНУСЫ ДЛЯ ОПЫТНЫХ ОПЕРАТОРОВ + ТОПОВЫЕ АНКЕТЫ
+🚀 ТРЕНИНГИ И ОБУЧЕНИЯ ОТ ОПЫТНЫХ ТИМЛИДЕРОВ
+💥 СИСТЕМА БОНУСОВ 
+💵 ВОЗМОЖНОСТЬ ПОЛУЧИТЬ ВЫПЛАТУ В КРИПТЕ
+🔗 DREAM SINGLES
 
-💻 Формат работы:
-• Полностью удалённо
-• Работа с одним профилем (без перегрузки)
-• График 6/1, можно подстроить под себя
-• Общение с клиентами из США, Европы и Азии
-
-💸 Доход:
-• 44% от заработка
-• В среднем от 700-800$ и выше
-• Прозрачная статистика (видите всё в моменте)
-• Подарки и бонусы - всё фиксируется
-
-🚀 Почему стоит попробовать:
-• Быстрый рост (можно выйти на тимлида за 1-2 месяца)
-• Есть бонусы за активность
-• Помощь на старте и в процессе
-• Без «подводных камней» и скрытых условий
-
-📩 Напишите в личные @max_dreamx - расскажу, как начать и что нужно для старта
+ИНТЕРЕСНО? ПИШИ TG - @max_dreamx 📩
 """
 
-# Объявление для чатов БЕЗ ОПЫТА
 MESSAGE_BEGINNERS = """
 💻 Оператор онлайн-чата (удалённо, без опыта)
 
@@ -74,7 +71,6 @@ MESSAGE_BEGINNERS = """
 
 # ─── СПИСКИ ЧАТОВ ──────────────────────────────────────────────────────────────
 
-# Чаты для людей С ОПЫТОМ (username или числовой ID)
 CHATS_EXPERIENCED = [
     "OTC_ADULT",
     "OnlyBulletin",
@@ -104,81 +100,150 @@ CHATS_EXPERIENCED = [
     "virgin_grooup",
 ]
 
-# Чаты для людей БЕЗ ОПЫТА
 CHATS_BEGINNERS = [
-    "username_чата_4",
-    "username_чата_5",
-    "username_чата_6",
-    # добавляй сколько нужно
+    "WORKINGUA2",
+    "uaallwork",
+    "work_chat_ua",
+    "work_ukraine_kyiv",
+    "jb_ua",
+    "ua_ads",
+    "WORKINGUA2",
+    "RabotaFreelanceUa",
+    "workingkyivwork",
+    "rabota_ua8",
+    "piarchattua1",
+    "Mr_White_Business_Chat",
+    "udalenka_chat_ua",
+    "odesa_robotaa",
+    "robotaonllnechat",
+    "robotachat2024",
+    "ogoloshennyaU",
+    "kupiprodayukra",
+    "Kiev24chat",
+    "kiev_vakanciya",
+    "warsawa_work",
+    "worker_odessa",
+    "work_lviv2",
+    "rabotaonlain48",
+    "onlinerabota07",
+    "rabota_onlliine",
+    "freelance_chatik0",
+    "rabotadneprzdes",
+    "rabota_onlik",
+    "rabota_chatt",
+    "ishchu_rabotu_chat",
+    "work_rabota_k",
+    "doskaobyavleniyUK",
+    "prorobotarv",
+    "robota5500",
+    "work_ua_01",
+    "rabotavsumychat",
+    "Chat_rabota_ishchu_rabotu",
+    "rabota_v_Dnepre_center",
+    "g_7RDE0YS7dU5NmQy",
 ]
+
+# ─── ОТЧЁТЫ ────────────────────────────────────────────────────────────────────
+
+def send_report(text):
+    """Отправляем отчёт в Telegram через бота."""
+    try:
+        url = f"https://api.telegram.org/bot{REPORT_BOT_TOKEN}/sendMessage"
+        requests.post(url, json={
+            "chat_id": REPORT_CHAT_ID,
+            "text": text,
+            "parse_mode": "Markdown"
+        }, timeout=10)
+    except Exception as e:
+        print(f"[WARN] Report failed: {e}")
 
 # ─── ОТПРАВКА ──────────────────────────────────────────────────────────────────
 
-async def send_to_chat(client, chat, message):
-    """Отправляем сообщение в один чат. При любой ошибке — пропускаем."""
+async def send_to_chat(client, chat, message, account_name):
     try:
         await client.send_message(chat, message, parse_mode='md')
-        print(f"✅ Отправлено в {chat}")
+        now = datetime.now().strftime("%H:%M")
+        print(f"✅ Отправлено в @{chat}")
+        send_report(f"✅ *{account_name}* отправила сообщение в *{now}* в чат @{chat}")
         return True
+
     except FloodWaitError as e:
         print(f"⏳ FloodWait {chat}: ждём {e.seconds} сек...")
+        send_report(f"⏳ FloodWait — ждём {e.seconds} сек перед @{chat}")
         await asyncio.sleep(e.seconds + 5)
-        # Пробуем ещё раз после ожидания
         try:
             await client.send_message(chat, message, parse_mode='md')
-            print(f"✅ Отправлено в {chat} (после ожидания)")
+            now = datetime.now().strftime("%H:%M")
+            send_report(f"✅ *{account_name}* отправила сообщение в *{now}* в чат @{chat} (после ожидания)")
             return True
         except Exception as e2:
-            print(f"❌ Не удалось после ожидания {chat}: {e2}")
+            send_report(f"❌ Не удалось отправить в @{chat}: {type(e2).__name__}")
             return False
+
     except (ChatWriteForbiddenError, UserBannedInChannelError,
             ChannelPrivateError, ChatAdminRequiredError) as e:
-        print(f"🚫 Нет доступа к {chat}: {type(e).__name__}")
+        print(f"🚫 Нет доступа к @{chat}: {type(e).__name__}")
+        send_report(f"🚫 Нет доступа к @{chat} — пропускаем")
         return False
+
     except PeerFloodError:
-        print(f"⚠️ PeerFlood — слишком много запросов. Ждём 5 минут...")
+        print(f"⚠️ PeerFlood — ждём 5 минут...")
+        send_report(f"⚠️ PeerFlood — слишком много запросов, ждём 5 минут")
         await asyncio.sleep(300)
         return False
+
     except UserDeactivatedBanError:
-        print(f"🔴 АККАУНТ ЗАБЛОКИРОВАН! Остановка.")
-        raise  # критическая ошибка — останавливаем всё
+        send_report(f"🔴 АККАУНТ ЗАБЛОКИРОВАН! Рассылка остановлена.")
+        raise
+
     except Exception as e:
-        print(f"❌ Ошибка {chat}: {type(e).__name__}: {e}")
+        print(f"❌ Ошибка @{chat}: {e}")
+        send_report(f"❌ Ошибка в @{chat}: {type(e).__name__}")
         return False
 
 
 async def main():
-    print(f"Запуск рассылки...")
+    print("Запуск рассылки...")
 
     async with TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH) as client:
         me = await client.get_me()
-        print(f"Аккаунт: {me.first_name} (@{me.username})")
+        account_name = me.first_name or me.username or "Бот"
+        print(f"Аккаунт: {account_name}")
+
+        now = datetime.now().strftime("%d.%m.%Y %H:%M")
+        send_report(f"🚀 Начинаю рассылку | {now}\nАккаунт: *{account_name}*")
 
         sent = 0
         failed = 0
 
-        # Рассылка в чаты С ОПЫТОМ
+        # Чаты С ОПЫТОМ
         print(f"\n--- Чаты с опытом ({len(CHATS_EXPERIENCED)}) ---")
         for chat in CHATS_EXPERIENCED:
-            result = await send_to_chat(client, chat, MESSAGE_EXPERIENCED)
+            result = await send_to_chat(client, chat, MESSAGE_EXPERIENCED, account_name)
             if result:
                 sent += 1
             else:
                 failed += 1
-            # Пауза между отправками (снижает риск бана)
             await asyncio.sleep(45)
 
-        # Рассылка в чаты БЕЗ ОПЫТА
+        # Чаты БЕЗ ОПЫТА
         print(f"\n--- Чаты без опыта ({len(CHATS_BEGINNERS)}) ---")
         for chat in CHATS_BEGINNERS:
-            result = await send_to_chat(client, chat, MESSAGE_BEGINNERS)
+            result = await send_to_chat(client, chat, MESSAGE_BEGINNERS, account_name)
             if result:
                 sent += 1
             else:
                 failed += 1
             await asyncio.sleep(45)
 
-        print(f"\nГотово! Отправлено: {sent}, пропущено: {failed}")
+        summary = (
+            f"📊 *Рассылка завершена*\n"
+            f"✅ Отправлено: {sent}\n"
+            f"❌ Пропущено: {failed}\n"
+            f"📋 Всего чатов: {sent + failed}"
+        )
+        print(f"\n{summary}")
+        send_report(summary)
 
 
 if __name__ == "__main__":
