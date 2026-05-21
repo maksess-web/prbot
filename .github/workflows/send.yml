@@ -23,7 +23,10 @@ jobs:
 
       - name: Run sender
         env:
-          TG_API_ID:   ${{ secrets.TG_API_ID }}
+          TG_API_ID: ${{ secrets.TG_API_ID }}
           TG_API_HASH: ${{ secrets.TG_API_HASH }}
-          TG_SESSION:  ${{ secrets.TG_SESSION }}
+          TG_SESSION: ${{ secrets.TG_SESSION }}
+          REPORT_BOT_TOKEN: ${{ secrets.REPORT_BOT_TOKEN }}
+          REPORT_CHAT_ID: ${{ secrets.REPORT_CHAT_ID }}
         run: python sender.py
+        
