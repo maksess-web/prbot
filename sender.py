@@ -224,6 +224,8 @@ async def send_to_chat(client, chat, message, account_name):
 
 async def main():
     print("Запуск рассылки...")
+     print(f"API_ID: {API_ID}")
+    print(f"SESSION длина: {len(SESSION_STR)}")
 
     async with TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH) as client:
         me = await client.get_me()
