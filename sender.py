@@ -247,7 +247,7 @@ async def main():
                 sent += 1
             else:
                 failed += 1
-            await asyncio.sleep(20)
+            await asyncio.sleep(8)
 
         print(f"\n--- Чаты без опыта ({len(CHATS_BEGINNERS)}) ---")
         for chat in CHATS_BEGINNERS:
