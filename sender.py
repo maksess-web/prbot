@@ -15,7 +15,6 @@ API_ID      = int(os.environ["TG_API_ID"])
 API_HASH    = os.environ["TG_API_HASH"]
 SESSION_STR = os.environ["TG_SESSION"]
 
-# Бот для отчётов
 REPORT_BOT_TOKEN = os.environ["REPORT_BOT_TOKEN"]
 REPORT_CHAT_ID   = os.environ["REPORT_CHAT_ID"]
 
@@ -117,12 +116,11 @@ CHATS_EXPERIENCED = [
 CHATS_BEGINNERS = [
     "WORKINGUA2",
     "uaallwork",
-    "work_online_kiev"
+    "work_online_kiev",
     "work_chat_ua",
     "work_ukraine_kyiv",
     "jb_ua",
     "ua_ads",
-    "WORKINGUA2",
     "RabotaFreelanceUa",
     "workingkyivwork",
     "rabota_ua8",
@@ -166,7 +164,6 @@ CHATS_BEGINNERS = [
 # ─── ОТЧЁТЫ ────────────────────────────────────────────────────────────────────
 
 def send_report(text):
-    """Отправляем отчёт в Telegram через бота."""
     try:
         url = f"https://api.telegram.org/bot{REPORT_BOT_TOKEN}/sendMessage"
         requests.post(url, json={
@@ -224,7 +221,7 @@ async def send_to_chat(client, chat, message, account_name):
 
 async def main():
     print("Запуск рассылки...")
-     print(f"API_ID: {API_ID}")
+    print(f"API_ID: {API_ID}")
     print(f"SESSION длина: {len(SESSION_STR)}")
 
     async with TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH) as client:
@@ -238,7 +235,6 @@ async def main():
         sent = 0
         failed = 0
 
-        # Чаты С ОПЫТОМ
         print(f"\n--- Чаты с опытом ({len(CHATS_EXPERIENCED)}) ---")
         for chat in CHATS_EXPERIENCED:
             result = await send_to_chat(client, chat, MESSAGE_EXPERIENCED, account_name)
@@ -246,9 +242,8 @@ async def main():
                 sent += 1
             else:
                 failed += 1
-            await asyncio.sleep(45)
+            await asyncio.sleep(20)
 
-        # Чаты БЕЗ ОПЫТА
         print(f"\n--- Чаты без опыта ({len(CHATS_BEGINNERS)}) ---")
         for chat in CHATS_BEGINNERS:
             result = await send_to_chat(client, chat, MESSAGE_BEGINNERS, account_name)
@@ -256,7 +251,7 @@ async def main():
                 sent += 1
             else:
                 failed += 1
-            await asyncio.sleep(45)
+            await asyncio.sleep(20)
 
         summary = (
             f"📊 *Рассылка завершена*\n"
